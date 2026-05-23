@@ -15,7 +15,7 @@
             --text-sub: #6B7280;
             --success: #10B981;
             --danger: #EF4444;
-            --share: #06C755; /* LINE風のグリーン */
+            --share: #06C755; 
         }
 
         /* ダークモード用の変数 */
@@ -430,11 +430,10 @@
             btnReview.style.display = 'none';
         }
 
-        // 10問出題モードの時だけシェアボタンを表示
         btnShare.style.display = (currentMode === '10') ? 'flex' : 'none';
     }
 
-    // --- シェア機能（画像生成 ＋ 共有API） ---
+    // --- シェア機能（全問表示 ＋ URL追加 ＋ ウォーターマーク） ---
     async function shareResult() {
         const shareBtn = document.getElementById('btn-share');
         const originalContent = shareBtn.innerHTML;
@@ -442,32 +441,46 @@
         shareBtn.disabled = true;
 
         const shareArea = document.getElementById('share-content');
+        const mistakeList = document.getElementById('mistake-list');
         
-        // 画像生成時の背景色を担保（ダークモード時は暗く、通常は白に）
         const isDark = document.body.classList.contains('dark-mode');
         shareArea.style.backgroundColor = isDark ? 'var(--card-bg)' : '#FFFFFF';
         shareArea.style.padding = '24px';
         shareArea.style.borderRadius = '16px';
 
+        // ★追加1: 全問が画像に収まるようにスクロール制限を一時的に外す
+        const originalMaxHeight = mistakeList.style.maxHeight;
+        const originalOverflow = mistakeList.style.overflowY;
+        mistakeList.style.maxHeight = 'none';
+        mistakeList.style.overflowY = 'visible';
+
+        // ★追加2: 画像の下部にサイト名とURL（ウォーターマーク）を埋め込む
+        const watermark = document.createElement('div');
+        watermark.style.textAlign = 'center';
+        watermark.style.marginTop = '24px';
+        watermark.style.fontSize = '14px';
+        watermark.style.fontWeight = 'bold';
+        watermark.style.color = isDark ? '#9CA3AF' : '#6B7280';
+        watermark.innerHTML = '🇩🇪 ドイツ語小テスト対策<br><span style="font-weight: normal; font-size: 12px;">https://58ghz-yuta.github.io/german-quiz/</span>';
+        shareArea.appendChild(watermark);
+
         try {
             const canvas = await html2canvas(shareArea, {
-                scale: 2, // 高画質化
+                scale: 2, 
                 backgroundColor: isDark ? '#1F2937' : '#FFFFFF'
             });
 
-            // スタイルを元に戻す
-            shareArea.style.backgroundColor = 'transparent';
-            shareArea.style.padding = '16px 0';
-
             canvas.toBlob(async (blob) => {
                 const file = new File([blob], 'german-quiz-result.png', { type: 'image/png' });
+                
+                // ★追加3: URLプロパティを追加
                 const shareData = {
                     title: 'ドイツ語小テスト対策',
-                    text: `ドイツ語小テスト対策アプリで ${correctCount}点 でした！\nアプリはこちら👇\nhttps://58ghz-yuta.github.io/german-quiz/`,
+                    text: `ドイツ語小テスト対策アプリで ${correctCount}点 でした！\n`,
+                    url: 'https://58ghz-yuta.github.io/german-quiz/',
                     files: [file]
                 };
 
-                // ブラウザがファイル付きのWeb Share APIに対応しているかチェック（iPad Safariは対応）
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share(shareData);
@@ -475,7 +488,6 @@
                         console.log('シェアがキャンセルされました:', err);
                     }
                 } else {
-                    // 対応していないブラウザやアプリ内ブラウザ（LINE内ブラウザ等）の場合はモーダルで画像を表示
                     document.getElementById('generated-image').src = canvas.toDataURL('image/png');
                     document.getElementById('image-modal').classList.add('active');
                 }
@@ -485,6 +497,13 @@
             alert("画像の生成に失敗しました。");
             console.error(error);
         } finally {
+            // スタイルを元に戻す
+            shareArea.style.backgroundColor = 'transparent';
+            shareArea.style.padding = '16px 0';
+            mistakeList.style.maxHeight = originalMaxHeight || '';
+            mistakeList.style.overflowY = originalOverflow || '';
+            shareArea.removeChild(watermark); // ウォーターマークを消す
+
             shareBtn.innerHTML = originalContent;
             shareBtn.disabled = false;
         }
