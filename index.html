@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ドイツ語小テスト対策</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         :root {
             --primary: #4F46E5;
@@ -14,6 +15,7 @@
             --text-sub: #6B7280;
             --success: #10B981;
             --danger: #EF4444;
+            --share: #06C755; /* LINE風のグリーン */
         }
 
         /* ダークモード用の変数 */
@@ -34,8 +36,8 @@
             color: var(--text-main);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 画面外に見切れるバグを修正 */
-            padding: 5vh 16px; /* 上下に余白を持たせる */
+            align-items: flex-start; 
+            padding: 5vh 16px; 
             min-height: 100vh;
             transition: background-color 0.3s, color 0.3s;
         }
@@ -45,7 +47,7 @@
             max-width: 500px;
             background-color: var(--card-bg);
             height: auto;
-            min-height: 80vh; /* PCやタブレットでも自然な高さに */
+            min-height: 80vh; 
             border-radius: 16px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: relative;
@@ -54,7 +56,6 @@
             transition: background-color 0.3s;
         }
 
-        /* ダークモード切り替えボタン */
         .theme-toggle {
             position: absolute;
             top: 20px;
@@ -75,9 +76,7 @@
             flex-grow: 1;
         }
 
-        .screen.active {
-            display: flex;
-        }
+        .screen.active { display: flex; }
 
         h1, h2 { text-align: center; margin-bottom: 24px; color: var(--text-main); margin-top: 16px; }
         h1 { font-size: 24px; }
@@ -105,8 +104,9 @@
         
         .btn-success { background-color: var(--success); color: white; }
         .btn-danger { background-color: var(--danger); color: white; }
+        .btn-share { background-color: var(--share); color: white; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-share:hover { opacity: 0.9; }
 
-        /* 中断ボタン */
         .btn-abort {
             background: none;
             border: none;
@@ -121,12 +121,10 @@
         }
         .btn-abort:hover { text-decoration: underline; }
 
-        /* ダークモード時のボタン等の微調整 */
         body.dark-mode .btn-secondary { background-color: #374151; color: var(--text-main); }
         body.dark-mode .btn-secondary:hover { background-color: #4B5563; }
         body.dark-mode .btn-disabled { background-color: #374151; color: #6B7280; }
 
-        /* ヒントエリア（単語リスト） */
         .hint-container {
             background-color: #EEF2FF;
             border-radius: 8px;
@@ -149,65 +147,46 @@
         }
         body.dark-mode .chip { border-color: #4B5563; color: #E0E7FF; }
 
-        /* 問題エリア */
         .status-bar { text-align: center; font-size: 14px; color: var(--text-sub); margin-bottom: 16px; }
         .question-box { text-align: center; margin-bottom: 32px; flex-grow: 1; }
         .question-text { font-size: 24px; font-weight: bold; margin-bottom: 24px; }
         
-        .answer-area {
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s;
-            visibility: hidden;
-            margin-bottom: 24px;
-        }
-        .answer-area.show {
-            opacity: 1;
-            transform: translateY(0);
-            visibility: visible;
-        }
+        .answer-area { opacity: 0; transform: translateY(10px); transition: all 0.3s; visibility: hidden; margin-bottom: 24px; }
+        .answer-area.show { opacity: 1; transform: translateY(0); visibility: visible; }
         .answer-text {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--primary);
-            padding: 16px;
-            background-color: #F8FAFC;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
-            margin-bottom: 16px;
-            transition: background-color 0.3s;
+            font-size: 22px; font-weight: bold; color: var(--primary); padding: 16px;
+            background-color: #F8FAFC; border-radius: 8px; border-left: 4px solid var(--primary);
+            margin-bottom: 16px; transition: background-color 0.3s;
         }
         body.dark-mode .answer-text { background-color: #374151; }
 
         .judgement-btns { display: flex; gap: 12px; }
         .judgement-btns .btn { margin-bottom: 0; }
 
-        /* リザルトエリア */
-        .result-score { font-size: 48px; text-align: center; font-weight: bold; color: var(--primary); margin: 24px 0; }
-        .mistake-list { margin-bottom: 24px; max-height: 200px; overflow-y: auto; }
+        /* リザルト用（画像化されるエリア） */
+        .share-area { padding: 16px 0; background-color: transparent; }
+        .result-score { font-size: 48px; text-align: center; font-weight: bold; color: var(--primary); margin: 16px 0; }
+        .mistake-list { margin-bottom: 24px; max-height: 300px; overflow-y: auto; }
         .mistake-item { 
-            background: #FEF2F2; 
-            border-left: 4px solid var(--danger); 
-            padding: 12px; 
-            margin-bottom: 8px; 
-            border-radius: 4px; 
-            transition: background-color 0.3s;
+            background: #FEF2F2; border-left: 4px solid var(--danger); 
+            padding: 12px; margin-bottom: 8px; border-radius: 4px; transition: background-color 0.3s;
         }
         body.dark-mode .mistake-item { background: #374151; }
         .mistake-ja { font-size: 14px; color: var(--text-sub); margin-bottom: 4px; }
         .mistake-de { font-weight: bold; color: var(--danger); }
 
-        /* 紙吹雪用キャンバス */
-        #confetti-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
-            border-radius: 16px;
+        #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; border-radius: 16px; }
+
+        /* 代替シェア画像用モーダル */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; flex-direction: column;
         }
+        .modal-overlay.active { display: flex; }
+        .modal-img { max-width: 100%; max-height: 70vh; border-radius: 8px; margin-bottom: 16px; }
+        .modal-text { color: white; font-weight: bold; margin-bottom: 16px; text-align: center; }
+        .btn-close-modal { background: white; color: black; padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
     </style>
 </head>
 <body>
@@ -263,36 +242,42 @@
     </div>
 
     <div id="screen-result" class="screen">
-        <h2>結果発表</h2>
-        <div class="result-score" id="result-score">8 / 10</div>
-        <p id="result-message" style="text-align: center; font-weight: bold; margin-bottom: 24px;"></p>
+        <div id="share-content" class="share-area">
+            <h2>結果発表</h2>
+            <div class="result-score" id="result-score">8 / 10</div>
+            <p id="result-message" style="text-align: center; font-weight: bold; margin-bottom: 24px;"></p>
 
-        <div id="mistake-section" style="display: none;">
-            <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--danger);">間違えた問題</h3>
-            <div class="mistake-list" id="mistake-list">
-                </div>
-            <button class="btn btn-primary" onclick="startReview()">間違えた問題を復習する</button>
+            <div id="mistake-section" style="display: none;">
+                <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--danger);">間違えた問題</h3>
+                <div class="mistake-list" id="mistake-list">
+                    </div>
+            </div>
         </div>
 
-        <button class="btn btn-secondary" style="margin-top: 16px;" onclick="goToModeSelect()">← モード選択に戻る</button>
+        <button class="btn btn-share" id="btn-share" onclick="shareResult()" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            結果を画像でシェア
+        </button>
+
+        <button class="btn btn-primary" id="btn-review" onclick="startReview()" style="display: none; margin-top: 12px;">間違えた問題を復習する</button>
+        <button class="btn btn-secondary" style="margin-top: 12px;" onclick="goToModeSelect()">← モード選択に戻る</button>
     </div>
 </div>
 
+<div id="image-modal" class="modal-overlay">
+    <p class="modal-text">画像を長押しして保存・シェアしてください<br>（または右上の共有ボタン）</p>
+    <img id="generated-image" class="modal-img" src="" alt="結果画像">
+    <button class="btn-close-modal" onclick="closeModal()">閉じる</button>
+</div>
+
 <script>
-    // --- 36通りの問題データ自動生成 ---
     const pronouns = [
-        { ja: "私は", de: "Ich", type: "1sg" },
-        { ja: "君は", de: "Du", type: "2sg" },
-        { ja: "彼は", de: "Er", type: "3sg" },
-        { ja: "彼女は", de: "Sie", type: "3sg" },
-        { ja: "それは", de: "Es", type: "3sg" },
-        { ja: "私たちは", de: "Wir", type: "1pl" },
-        { ja: "君たちは", de: "Ihr", type: "2pl" },
-        { ja: "彼らは", de: "Sie", type: "3pl" },
-        { ja: "彼女らは", de: "Sie", type: "3pl" },
-        { ja: "それらは", de: "Sie", type: "3pl" },
-        { ja: "あなたは", de: "Sie", type: "formal" },
-        { ja: "あなたがたは", de: "Sie", type: "formal" }
+        { ja: "私は", de: "Ich", type: "1sg" }, { ja: "君は", de: "Du", type: "2sg" },
+        { ja: "彼は", de: "Er", type: "3sg" }, { ja: "彼女は", de: "Sie", type: "3sg" },
+        { ja: "それは", de: "Es", type: "3sg" }, { ja: "私たちは", de: "Wir", type: "1pl" },
+        { ja: "君たちは", de: "Ihr", type: "2pl" }, { ja: "彼らは", de: "Sie", type: "3pl" },
+        { ja: "彼女らは", de: "Sie", type: "3pl" }, { ja: "それらは", de: "Sie", type: "3pl" },
+        { ja: "あなたは", de: "Sie", type: "formal" }, { ja: "あなたがたは", de: "Sie", type: "formal" }
     ];
 
     const verbs = {
@@ -308,7 +293,6 @@
         allQuestions.push({ ja: `${p.ja}空腹です。`, de: `${p.de} ${verbs.haben[p.type]} Hunger.` });
     });
 
-    // --- 状態管理 ---
     let currentMode = ''; 
     let currentQueue = [];
     let wrongQuestions = [];
@@ -316,7 +300,6 @@
     let correctCount = 0;
     let totalAsked = 0;
 
-    // --- 画面遷移関数 ---
     function switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
@@ -326,18 +309,12 @@
     function goToTop() { switchScreen('screen-top'); }
     function goToModeSelect() { switchScreen('screen-mode'); }
 
-    // --- ダークモード切り替え ---
     function toggleDarkMode() {
         document.body.classList.toggle('dark-mode');
         const btn = document.getElementById('theme-toggle-btn');
-        if (document.body.classList.contains('dark-mode')) {
-            btn.textContent = '☀️';
-        } else {
-            btn.textContent = '🌙';
-        }
+        btn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
     }
 
-    // --- クイズロジック ---
     function startQuiz(mode) {
         currentMode = mode;
         wrongQuestions = [];
@@ -377,14 +354,11 @@
             let reshuffled = [...allQuestions].sort(() => Math.random() - 0.5);
             currentQueue = currentQueue.concat(reshuffled);
         }
-
         const q = currentQueue[currentIndex];
         document.getElementById('question-text').textContent = q.ja;
         document.getElementById('answer-text').textContent = q.de;
-        
         document.getElementById('btn-show-answer').style.display = 'block';
         document.getElementById('answer-area').classList.remove('show');
-
         totalAsked++;
         if (currentMode === '10' || currentMode === 'review') {
             document.getElementById('status-bar').textContent = `${currentIndex + 1} / ${currentQueue.length}問目`;
@@ -403,12 +377,9 @@
             correctCount++;
         } else {
             const q = currentQueue[currentIndex];
-            if (!wrongQuestions.some(wq => wq.ja === q.ja)) {
-                wrongQuestions.push(q);
-            }
+            if (!wrongQuestions.some(wq => wq.ja === q.ja)) wrongQuestions.push(q);
         }
         currentIndex++;
-
         if ((currentMode === '10' || currentMode === 'review') && currentIndex >= currentQueue.length) {
             showResult();
         } else {
@@ -418,7 +389,6 @@
 
     function endEndless() { showResult(); }
 
-    // --- 中断処理 ---
     function abortQuiz() {
         if (confirm("問題の進行状況はリセットされますが、モード選択画面に戻りますか？")) {
             goToModeSelect();
@@ -431,6 +401,8 @@
         const msgText = document.getElementById('result-message');
         const mistakeSection = document.getElementById('mistake-section');
         const mistakeList = document.getElementById('mistake-list');
+        const btnShare = document.getElementById('btn-share');
+        const btnReview = document.getElementById('btn-review');
 
         scoreText.textContent = `${correctCount} / ${totalAsked}`;
         
@@ -445,6 +417,7 @@
 
         if (wrongQuestions.length > 0) {
             mistakeSection.style.display = 'block';
+            btnReview.style.display = 'block';
             mistakeList.innerHTML = '';
             wrongQuestions.forEach(q => {
                 const item = document.createElement('div');
@@ -454,7 +427,71 @@
             });
         } else {
             mistakeSection.style.display = 'none';
+            btnReview.style.display = 'none';
         }
+
+        // 10問出題モードの時だけシェアボタンを表示
+        btnShare.style.display = (currentMode === '10') ? 'flex' : 'none';
+    }
+
+    // --- シェア機能（画像生成 ＋ 共有API） ---
+    async function shareResult() {
+        const shareBtn = document.getElementById('btn-share');
+        const originalContent = shareBtn.innerHTML;
+        shareBtn.textContent = "⌛ 画像を生成中...";
+        shareBtn.disabled = true;
+
+        const shareArea = document.getElementById('share-content');
+        
+        // 画像生成時の背景色を担保（ダークモード時は暗く、通常は白に）
+        const isDark = document.body.classList.contains('dark-mode');
+        shareArea.style.backgroundColor = isDark ? 'var(--card-bg)' : '#FFFFFF';
+        shareArea.style.padding = '24px';
+        shareArea.style.borderRadius = '16px';
+
+        try {
+            const canvas = await html2canvas(shareArea, {
+                scale: 2, // 高画質化
+                backgroundColor: isDark ? '#1F2937' : '#FFFFFF'
+            });
+
+            // スタイルを元に戻す
+            shareArea.style.backgroundColor = 'transparent';
+            shareArea.style.padding = '16px 0';
+
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'german-quiz-result.png', { type: 'image/png' });
+                const shareData = {
+                    title: 'ドイツ語小テスト対策',
+                    text: `ドイツ語小テスト対策アプリで ${correctCount}点 でした！\nアプリはこちら👇\nhttps://58ghz-yuta.github.io/german-quiz/`,
+                    files: [file]
+                };
+
+                // ブラウザがファイル付きのWeb Share APIに対応しているかチェック（iPad Safariは対応）
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share(shareData);
+                    } catch (err) {
+                        console.log('シェアがキャンセルされました:', err);
+                    }
+                } else {
+                    // 対応していないブラウザやアプリ内ブラウザ（LINE内ブラウザ等）の場合はモーダルで画像を表示
+                    document.getElementById('generated-image').src = canvas.toDataURL('image/png');
+                    document.getElementById('image-modal').classList.add('active');
+                }
+            }, 'image/png');
+
+        } catch (error) {
+            alert("画像の生成に失敗しました。");
+            console.error(error);
+        } finally {
+            shareBtn.innerHTML = originalContent;
+            shareBtn.disabled = false;
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('image-modal').classList.remove('active');
     }
 
     // --- 紙吹雪エフェクト ---
