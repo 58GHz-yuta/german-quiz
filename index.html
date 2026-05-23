@@ -15,6 +15,16 @@
             --success: #10B981;
             --danger: #EF4444;
         }
+
+        /* ダークモード用の変数 */
+        body.dark-mode {
+            --bg: #111827;
+            --card-bg: #1F2937;
+            --text-main: #F9FAFB;
+            --text-sub: #9CA3AF;
+            --primary: #6366F1;
+            --primary-hover: #4F46E5;
+        }
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
@@ -24,28 +34,36 @@
             color: var(--text-main);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* 画面外に見切れるバグを修正 */
+            padding: 5vh 16px; /* 上下に余白を持たせる */
             min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .container {
             width: 100%;
             max-width: 500px;
             background-color: var(--card-bg);
-            min-height: 100vh;
+            height: auto;
+            min-height: 80vh; /* PCやタブレットでも自然な高さに */
+            border-radius: 16px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: relative;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s;
         }
 
-        @media (min-width: 500px) {
-            .container {
-                min-height: auto;
-                height: 90vh;
-                border-radius: 16px;
-            }
+        /* ダークモード切り替えボタン */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10;
         }
 
         .screen {
@@ -54,13 +72,14 @@
             padding: 24px;
             height: 100%;
             overflow-y: auto;
+            flex-grow: 1;
         }
 
         .screen.active {
             display: flex;
         }
 
-        h1, h2 { text-align: center; margin-bottom: 24px; color: var(--text-main); }
+        h1, h2 { text-align: center; margin-bottom: 24px; color: var(--text-main); margin-top: 16px; }
         h1 { font-size: 24px; }
         h2 { font-size: 20px; }
 
@@ -80,12 +99,32 @@
 
         .btn-primary { background-color: var(--primary); color: white; }
         .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-secondary { background-color: #E5E7EB; color: var(--text-main); }
+        .btn-secondary { background-color: #E5E7EB; color: #1F2937; }
         .btn-secondary:hover { background-color: #D1D5DB; }
         .btn-disabled { background-color: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
         
         .btn-success { background-color: var(--success); color: white; }
         .btn-danger { background-color: var(--danger); color: white; }
+
+        /* 中断ボタン */
+        .btn-abort {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 14px;
+            cursor: pointer;
+            text-align: left;
+            margin-bottom: 16px;
+            padding: 4px 0;
+            display: inline-block;
+            align-self: flex-start;
+        }
+        .btn-abort:hover { text-decoration: underline; }
+
+        /* ダークモード時のボタン等の微調整 */
+        body.dark-mode .btn-secondary { background-color: #374151; color: var(--text-main); }
+        body.dark-mode .btn-secondary:hover { background-color: #4B5563; }
+        body.dark-mode .btn-disabled { background-color: #374151; color: #6B7280; }
 
         /* ヒントエリア（単語リスト） */
         .hint-container {
@@ -93,17 +132,22 @@
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 24px;
+            transition: background-color 0.3s;
         }
+        body.dark-mode .hint-container { background-color: #374151; }
+        
         .hint-title { font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: bold; }
         .word-chips { display: flex; flex-wrap: wrap; gap: 6px; }
         .chip {
-            background-color: white;
+            background-color: var(--card-bg);
             border: 1px solid #C7D2FE;
             color: var(--primary);
             padding: 4px 10px;
             border-radius: 16px;
             font-size: 14px;
+            transition: all 0.3s;
         }
+        body.dark-mode .chip { border-color: #4B5563; color: #E0E7FF; }
 
         /* 問題エリア */
         .status-bar { text-align: center; font-size: 14px; color: var(--text-sub); margin-bottom: 16px; }
@@ -131,7 +175,9 @@
             border-radius: 8px;
             border-left: 4px solid var(--primary);
             margin-bottom: 16px;
+            transition: background-color 0.3s;
         }
+        body.dark-mode .answer-text { background-color: #374151; }
 
         .judgement-btns { display: flex; gap: 12px; }
         .judgement-btns .btn { margin-bottom: 0; }
@@ -139,7 +185,15 @@
         /* リザルトエリア */
         .result-score { font-size: 48px; text-align: center; font-weight: bold; color: var(--primary); margin: 24px 0; }
         .mistake-list { margin-bottom: 24px; max-height: 200px; overflow-y: auto; }
-        .mistake-item { background: #FEF2F2; border-left: 4px solid var(--danger); padding: 12px; margin-bottom: 8px; border-radius: 4px; }
+        .mistake-item { 
+            background: #FEF2F2; 
+            border-left: 4px solid var(--danger); 
+            padding: 12px; 
+            margin-bottom: 8px; 
+            border-radius: 4px; 
+            transition: background-color 0.3s;
+        }
+        body.dark-mode .mistake-item { background: #374151; }
         .mistake-ja { font-size: 14px; color: var(--text-sub); margin-bottom: 4px; }
         .mistake-de { font-weight: bold; color: var(--danger); }
 
@@ -152,17 +206,19 @@
             height: 100%;
             pointer-events: none;
             z-index: 100;
+            border-radius: 16px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <button id="theme-toggle-btn" class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
     <canvas id="confetti-canvas"></canvas>
 
     <div id="screen-top" class="screen active">
         <h1>🇩🇪 ドイツ語小テスト対策</h1>
-        <p style="text-align: center; margin-bottom: 32px; color: var(--text-sub);">前期の小テストに備えましょう！</p>
+        <p style="text-align: center; margin-bottom: 32px; color: var(--text-sub);">小テストに備えよう！</p>
         <button class="btn btn-primary" onclick="goToModeSelect()">第1回 小テスト対策</button>
         <button class="btn btn-disabled">第2回 小テスト対策 (準備中)</button>
         <button class="btn btn-disabled">第3回 小テスト対策 (準備中)</button>
@@ -170,13 +226,15 @@
     </div>
 
     <div id="screen-mode" class="screen">
-        <h2>モードを選択</h2>
+        <h2>第1回 モード選択</h2>
         <button class="btn btn-primary" onclick="startQuiz('10')">10問出題モード</button>
         <button class="btn btn-secondary" onclick="startQuiz('endless')">エンドレスモード</button>
-        <button class="btn btn-secondary" style="margin-top: auto;" onclick="goToTop()">Topに戻る</button>
+        <button class="btn btn-secondary" style="margin-top: auto;" onclick="goToTop()">← Topに戻る</button>
     </div>
 
     <div id="screen-quiz" class="screen">
+        <button class="btn-abort" onclick="abortQuiz()">← 中断して戻る</button>
+
         <div class="hint-container">
             <div class="hint-title">💡 使用する単語</div>
             <div class="word-chips">
@@ -216,7 +274,7 @@
             <button class="btn btn-primary" onclick="startReview()">間違えた問題を復習する</button>
         </div>
 
-        <button class="btn btn-secondary" style="margin-top: 16px;" onclick="goToTop()">Topに戻る</button>
+        <button class="btn btn-secondary" style="margin-top: 16px;" onclick="goToModeSelect()">← モード選択に戻る</button>
     </div>
 </div>
 
@@ -245,25 +303,13 @@
 
     const allQuestions = [];
     pronouns.forEach(p => {
-        // パターン1: 〜は日本から来ました。
-        allQuestions.push({
-            ja: `${p.ja}日本から来ました。`,
-            de: `${p.de} ${verbs.kommen[p.type]} aus Japan.`
-        });
-        // パターン2: 〜は親切です。
-        allQuestions.push({
-            ja: `${p.ja}親切です。`,
-            de: `${p.de} ${verbs.sein[p.type]} nett.`
-        });
-        // パターン3: 〜は空腹です。
-        allQuestions.push({
-            ja: `${p.ja}空腹です。`,
-            de: `${p.de} ${verbs.haben[p.type]} Hunger.`
-        });
+        allQuestions.push({ ja: `${p.ja}日本から来ました。`, de: `${p.de} ${verbs.kommen[p.type]} aus Japan.` });
+        allQuestions.push({ ja: `${p.ja}親切です。`, de: `${p.de} ${verbs.sein[p.type]} nett.` });
+        allQuestions.push({ ja: `${p.ja}空腹です。`, de: `${p.de} ${verbs.haben[p.type]} Hunger.` });
     });
 
     // --- 状態管理 ---
-    let currentMode = ''; // '10', 'endless', 'review'
+    let currentMode = ''; 
     let currentQueue = [];
     let wrongQuestions = [];
     let currentIndex = 0;
@@ -274,11 +320,22 @@
     function switchScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
-        stopConfetti(); // 画面遷移時は紙吹雪を消す
+        stopConfetti(); 
     }
 
     function goToTop() { switchScreen('screen-top'); }
     function goToModeSelect() { switchScreen('screen-mode'); }
+
+    // --- ダークモード切り替え ---
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const btn = document.getElementById('theme-toggle-btn');
+        if (document.body.classList.contains('dark-mode')) {
+            btn.textContent = '☀️';
+        } else {
+            btn.textContent = '🌙';
+        }
+    }
 
     // --- クイズロジック ---
     function startQuiz(mode) {
@@ -294,7 +351,6 @@
             currentQueue = shuffled.slice(0, 10);
             document.getElementById('btn-end-endless').style.display = 'none';
         } else if (mode === 'endless') {
-            // エンドレスは全問題を無限ループできるようにする（今回は36問をループ）
             currentQueue = shuffled;
             document.getElementById('btn-end-endless').style.display = 'block';
         }
@@ -317,7 +373,6 @@
     }
 
     function loadQuestion() {
-        // エンドレスモードでキューを使い切ったら再シャッフルして追加
         if (currentMode === 'endless' && currentIndex >= currentQueue.length) {
             let reshuffled = [...allQuestions].sort(() => Math.random() - 0.5);
             currentQueue = currentQueue.concat(reshuffled);
@@ -327,11 +382,9 @@
         document.getElementById('question-text').textContent = q.ja;
         document.getElementById('answer-text').textContent = q.de;
         
-        // UI初期化
         document.getElementById('btn-show-answer').style.display = 'block';
         document.getElementById('answer-area').classList.remove('show');
 
-        // ステータス表示
         totalAsked++;
         if (currentMode === '10' || currentMode === 'review') {
             document.getElementById('status-bar').textContent = `${currentIndex + 1} / ${currentQueue.length}問目`;
@@ -349,13 +402,11 @@
         if (isCorrect) {
             correctCount++;
         } else {
-            // 間違えた問題を記録（重複しないように）
             const q = currentQueue[currentIndex];
             if (!wrongQuestions.some(wq => wq.ja === q.ja)) {
                 wrongQuestions.push(q);
             }
         }
-
         currentIndex++;
 
         if ((currentMode === '10' || currentMode === 'review') && currentIndex >= currentQueue.length) {
@@ -365,8 +416,13 @@
         }
     }
 
-    function endEndless() {
-        showResult();
+    function endEndless() { showResult(); }
+
+    // --- 中断処理 ---
+    function abortQuiz() {
+        if (confirm("問題の進行状況はリセットされますが、モード選択画面に戻りますか？")) {
+            goToModeSelect();
+        }
     }
 
     function showResult() {
@@ -378,7 +434,6 @@
 
         scoreText.textContent = `${correctCount} / ${totalAsked}`;
         
-        // 満点判定（エンドレスの場合は1問以上解いて全問正解の場合）
         if (correctCount === totalAsked && totalAsked > 0) {
             msgText.textContent = "🎉 完璧です！素晴らしい！ 🎉";
             msgText.style.color = "var(--success)";
@@ -388,7 +443,6 @@
             msgText.style.color = "var(--text-main)";
         }
 
-        // 間違えた問題リストの表示
         if (wrongQuestions.length > 0) {
             mistakeSection.style.display = 'block';
             mistakeList.innerHTML = '';
@@ -403,7 +457,7 @@
         }
     }
 
-    // --- 紙吹雪エフェクト (Canvas) ---
+    // --- 紙吹雪エフェクト ---
     let canvas = document.getElementById("confetti-canvas");
     let ctx = canvas.getContext("2d");
     let particles = [];
@@ -439,7 +493,6 @@
             ctx.fill();
             p.x += p.dx;
             p.y += p.dy;
-            // 画面下に行ったら上に戻す
             if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
         });
         animationId = requestAnimationFrame(animateConfetti);
