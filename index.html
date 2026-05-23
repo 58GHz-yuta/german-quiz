@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ドイツ語小テスト対策</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2937;
+            --text-sub: #6B7280;
+            --success: #10B981;
+            --danger: #EF4444;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--card-bg);
+            min-height: 100vh;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 500px) {
+            .container {
+                min-height: auto;
+                height: 90vh;
+                border-radius: 16px;
+            }
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            padding: 24px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        h1, h2 { text-align: center; margin-bottom: 24px; color: var(--text-main); }
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: #E5E7EB; color: var(--text-main); }
+        .btn-secondary:hover { background-color: #D1D5DB; }
+        .btn-disabled { background-color: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
+        
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+
+        /* ヒントエリア（単語リスト） */
+        .hint-container {
+            background-color: #EEF2FF;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 24px;
+        }
+        .hint-title { font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: bold; }
+        .word-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chip {
+            background-color: white;
+            border: 1px solid #C7D2FE;
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 14px;
+        }
+
+        /* 問題エリア */
+        .status-bar { text-align: center; font-size: 14px; color: var(--text-sub); margin-bottom: 16px; }
+        .question-box { text-align: center; margin-bottom: 32px; flex-grow: 1; }
+        .question-text { font-size: 24px; font-weight: bold; margin-bottom: 24px; }
+        
+        .answer-area {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            visibility: hidden;
+            margin-bottom: 24px;
+        }
+        .answer-area.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+        .answer-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary);
+            padding: 16px;
+            background-color: #F8FAFC;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .judgement-btns { display: flex; gap: 12px; }
+        .judgement-btns .btn { margin-bottom: 0; }
+
+        /* リザルトエリア */
+        .result-score { font-size: 48px; text-align: center; font-weight: bold; color: var(--primary); margin: 24px 0; }
+        .mistake-list { margin-bottom: 24px; max-height: 200px; overflow-y: auto; }
+        .mistake-item { background: #FEF2F2; border-left: 4px solid var(--danger); padding: 12px; margin-bottom: 8px; border-radius: 4px; }
+        .mistake-ja { font-size: 14px; color: var(--text-sub); margin-bottom: 4px; }
+        .mistake-de { font-weight: bold; color: var(--danger); }
+
+        /* 紙吹雪用キャンバス */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="screen-top" class="screen active">
+        <h1>🇩🇪 ドイツ語小テスト対策</h1>
+        <p style="text-align: center; margin-bottom: 32px; color: var(--text-sub);">前期の小テストに備えましょう！</p>
+        <button class="btn btn-primary" onclick="goToModeSelect()">第1回 小テスト対策</button>
+        <button class="btn btn-disabled">第2回 小テスト対策 (準備中)</button>
+        <button class="btn btn-disabled">第3回 小テスト対策 (準備中)</button>
+        <button class="btn btn-disabled">第4回 小テスト対策 (準備中)</button>
+    </div>
+
+    <div id="screen-mode" class="screen">
+        <h2>モードを選択</h2>
+        <button class="btn btn-primary" onclick="startQuiz('10')">10問出題モード</button>
+        <button class="btn btn-secondary" onclick="startQuiz('endless')">エンドレスモード</button>
+        <button class="btn btn-secondary" style="margin-top: auto;" onclick="goToTop()">Topに戻る</button>
+    </div>
+
+    <div id="screen-quiz" class="screen">
+        <div class="hint-container">
+            <div class="hint-title">💡 使用する単語</div>
+            <div class="word-chips">
+                <span class="chip">kommen</span><span class="chip">sein</span><span class="chip">haben</span>
+                <span class="chip">Hunger</span><span class="chip">Japan</span><span class="chip">nett</span><span class="chip">aus</span>
+            </div>
+        </div>
+
+        <div class="status-bar" id="status-bar">1 / 10問目</div>
+        
+        <div class="question-box">
+            <div class="question-text" id="question-text">私は日本から来ました。</div>
+            
+            <button class="btn btn-primary" id="btn-show-answer" onclick="showAnswer()">答えを表示</button>
+
+            <div class="answer-area" id="answer-area">
+                <div class="answer-text" id="answer-text">Ich komme aus Japan.</div>
+                <div class="judgement-btns">
+                    <button class="btn btn-success" onclick="judge(true)">⭕ 正解！</button>
+                    <button class="btn btn-danger" onclick="judge(false)">❌ 不正解...</button>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn btn-secondary" id="btn-end-endless" style="display: none;" onclick="endEndless()">終了して結果を見る</button>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <h2>結果発表</h2>
+        <div class="result-score" id="result-score">8 / 10</div>
+        <p id="result-message" style="text-align: center; font-weight: bold; margin-bottom: 24px;"></p>
+
+        <div id="mistake-section" style="display: none;">
+            <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--danger);">間違えた問題</h3>
+            <div class="mistake-list" id="mistake-list">
+                </div>
+            <button class="btn btn-primary" onclick="startReview()">間違えた問題を復習する</button>
+        </div>
+
+        <button class="btn btn-secondary" style="margin-top: 16px;" onclick="goToTop()">Topに戻る</button>
+    </div>
+</div>
+
+<script>
+    // --- 36通りの問題データ自動生成 ---
+    const pronouns = [
+        { ja: "私は", de: "Ich", type: "1sg" },
+        { ja: "君は", de: "Du", type: "2sg" },
+        { ja: "彼は", de: "Er", type: "3sg" },
+        { ja: "彼女は", de: "Sie", type: "3sg" },
+        { ja: "それは", de: "Es", type: "3sg" },
+        { ja: "私たちは", de: "Wir", type: "1pl" },
+        { ja: "君たちは", de: "Ihr", type: "2pl" },
+        { ja: "彼らは", de: "Sie", type: "3pl" },
+        { ja: "彼女らは", de: "Sie", type: "3pl" },
+        { ja: "それらは", de: "Sie", type: "3pl" },
+        { ja: "あなたは", de: "Sie", type: "formal" },
+        { ja: "あなたがたは", de: "Sie", type: "formal" }
+    ];
+
+    const verbs = {
+        kommen: { "1sg": "komme", "2sg": "kommst", "3sg": "kommt", "1pl": "kommen", "2pl": "kommt", "3pl": "kommen", "formal": "kommen" },
+        sein: { "1sg": "bin", "2sg": "bist", "3sg": "ist", "1pl": "sind", "2pl": "seid", "3pl": "sind", "formal": "sind" },
+        haben: { "1sg": "habe", "2sg": "hast", "3sg": "hat", "1pl": "haben", "2pl": "habt", "3pl": "haben", "formal": "haben" }
+    };
+
+    const allQuestions = [];
+    pronouns.forEach(p => {
+        // パターン1: 〜は日本から来ました。
+        allQuestions.push({
+            ja: `${p.ja}日本から来ました。`,
+            de: `${p.de} ${verbs.kommen[p.type]} aus Japan.`
+        });
+        // パターン2: 〜は親切です。
+        allQuestions.push({
+            ja: `${p.ja}親切です。`,
+            de: `${p.de} ${verbs.sein[p.type]} nett.`
+        });
+        // パターン3: 〜は空腹です。
+        allQuestions.push({
+            ja: `${p.ja}空腹です。`,
+            de: `${p.de} ${verbs.haben[p.type]} Hunger.`
+        });
+    });
+
+    // --- 状態管理 ---
+    let currentMode = ''; // '10', 'endless', 'review'
+    let currentQueue = [];
+    let wrongQuestions = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let totalAsked = 0;
+
+    // --- 画面遷移関数 ---
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        stopConfetti(); // 画面遷移時は紙吹雪を消す
+    }
+
+    function goToTop() { switchScreen('screen-top'); }
+    function goToModeSelect() { switchScreen('screen-mode'); }
+
+    // --- クイズロジック ---
+    function startQuiz(mode) {
+        currentMode = mode;
+        wrongQuestions = [];
+        currentIndex = 0;
+        correctCount = 0;
+        totalAsked = 0;
+        
+        let shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+        
+        if (mode === '10') {
+            currentQueue = shuffled.slice(0, 10);
+            document.getElementById('btn-end-endless').style.display = 'none';
+        } else if (mode === 'endless') {
+            // エンドレスは全問題を無限ループできるようにする（今回は36問をループ）
+            currentQueue = shuffled;
+            document.getElementById('btn-end-endless').style.display = 'block';
+        }
+        
+        switchScreen('screen-quiz');
+        loadQuestion();
+    }
+
+    function startReview() {
+        currentMode = 'review';
+        currentQueue = [...wrongQuestions].sort(() => Math.random() - 0.5);
+        wrongQuestions = [];
+        currentIndex = 0;
+        correctCount = 0;
+        totalAsked = 0;
+        
+        document.getElementById('btn-end-endless').style.display = 'none';
+        switchScreen('screen-quiz');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        // エンドレスモードでキューを使い切ったら再シャッフルして追加
+        if (currentMode === 'endless' && currentIndex >= currentQueue.length) {
+            let reshuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+            currentQueue = currentQueue.concat(reshuffled);
+        }
+
+        const q = currentQueue[currentIndex];
+        document.getElementById('question-text').textContent = q.ja;
+        document.getElementById('answer-text').textContent = q.de;
+        
+        // UI初期化
+        document.getElementById('btn-show-answer').style.display = 'block';
+        document.getElementById('answer-area').classList.remove('show');
+
+        // ステータス表示
+        totalAsked++;
+        if (currentMode === '10' || currentMode === 'review') {
+            document.getElementById('status-bar').textContent = `${currentIndex + 1} / ${currentQueue.length}問目`;
+        } else {
+            document.getElementById('status-bar').textContent = `エンドレスモード - ${totalAsked}問目`;
+        }
+    }
+
+    function showAnswer() {
+        document.getElementById('btn-show-answer').style.display = 'none';
+        document.getElementById('answer-area').classList.add('show');
+    }
+
+    function judge(isCorrect) {
+        if (isCorrect) {
+            correctCount++;
+        } else {
+            // 間違えた問題を記録（重複しないように）
+            const q = currentQueue[currentIndex];
+            if (!wrongQuestions.some(wq => wq.ja === q.ja)) {
+                wrongQuestions.push(q);
+            }
+        }
+
+        currentIndex++;
+
+        if ((currentMode === '10' || currentMode === 'review') && currentIndex >= currentQueue.length) {
+            showResult();
+        } else {
+            loadQuestion();
+        }
+    }
+
+    function endEndless() {
+        showResult();
+    }
+
+    function showResult() {
+        switchScreen('screen-result');
+        const scoreText = document.getElementById('result-score');
+        const msgText = document.getElementById('result-message');
+        const mistakeSection = document.getElementById('mistake-section');
+        const mistakeList = document.getElementById('mistake-list');
+
+        scoreText.textContent = `${correctCount} / ${totalAsked}`;
+        
+        // 満点判定（エンドレスの場合は1問以上解いて全問正解の場合）
+        if (correctCount === totalAsked && totalAsked > 0) {
+            msgText.textContent = "🎉 完璧です！素晴らしい！ 🎉";
+            msgText.style.color = "var(--success)";
+            startConfetti();
+        } else {
+            msgText.textContent = "お疲れ様でした！復習して完璧を目指しましょう。";
+            msgText.style.color = "var(--text-main)";
+        }
+
+        // 間違えた問題リストの表示
+        if (wrongQuestions.length > 0) {
+            mistakeSection.style.display = 'block';
+            mistakeList.innerHTML = '';
+            wrongQuestions.forEach(q => {
+                const item = document.createElement('div');
+                item.className = 'mistake-item';
+                item.innerHTML = `<div class="mistake-ja">${q.ja}</div><div class="mistake-de">${q.de}</div>`;
+                mistakeList.appendChild(item);
+            });
+        } else {
+            mistakeSection.style.display = 'none';
+        }
+    }
+
+    // --- 紙吹雪エフェクト (Canvas) ---
+    let canvas = document.getElementById("confetti-canvas");
+    let ctx = canvas.getContext("2d");
+    let particles = [];
+    let animationId;
+
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+    }
+
+    function startConfetti() {
+        resizeCanvas();
+        particles = [];
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                r: Math.random() * 6 + 2,
+                dx: Math.random() * 4 - 2,
+                dy: Math.random() * 3 + 2,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`
+            });
+        }
+        animateConfetti();
+    }
+
+    function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            p.x += p.dx;
+            p.y += p.dy;
+            // 画面下に行ったら上に戻す
+            if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+        });
+        animationId = requestAnimationFrame(animateConfetti);
+    }
+
+    function stopConfetti() {
+        cancelAnimationFrame(animationId);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+</script>
+</body>
+</html>
